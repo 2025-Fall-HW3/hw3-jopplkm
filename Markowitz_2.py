@@ -70,8 +70,42 @@ class MyPortfolio:
         """
         TODO: Complete Task 4 Below
         """
-        
-        
+        assets = self.price.columns[self.price.columns != self.exclude]
+        n_assets = len(assets)
+
+        risk_on_sectors = ["XLK", "XLY", "XLC", "XLI", "XLF"]
+        risk_off_sectors = ["XLP", "XLU", "XLV", "XLRE", "XLB"]
+
+        spy_price = self.price[self.exclude]
+
+        ma_window = 200
+        spy_ma = spy_price.rolling(ma_window).mean()
+
+        for i, date in enumerate(self.price.index):
+            if i < ma_window:
+                self.portfolio_weights.loc[date, assets] = 1.0 / n_assets
+                continue
+
+            curr_spy = spy_price.iloc[i]
+            curr_ma = spy_ma.iloc[i]
+
+            if pd.isna(curr_ma):
+                self.portfolio_weights.loc[date, assets] = 1.0 / n_assets
+                continue
+
+            if curr_spy > curr_ma:
+                chosen = [s for s in risk_on_sectors if s in assets]
+            else:
+                chosen = [s for s in risk_off_sectors if s in assets]
+
+            if len(chosen) == 0:
+                self.portfolio_weights.loc[date, assets] = 1.0 / n_assets
+                continue
+
+            weight_each = 1.0 / len(chosen)
+            self.portfolio_weights.loc[date, :] = 0.0
+            self.portfolio_weights.loc[date, chosen] = weight_each
+
         """
         TODO: Complete Task 4 Above
         """
